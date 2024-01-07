@@ -618,16 +618,28 @@ proc loadOpenGL() =
 
   wglCreateContext =
     cast[wglCreateContext](GetProcAddress(opengl, "wglCreateContext"))
+  if wglCreateContext == nil:
+    quit("wglCreateContext not found in opengl32.dll")
   wglDeleteContext =
     cast[wglDeleteContext](GetProcAddress(opengl, "wglDeleteContext"))
+  if wglDeleteContext == nil:
+    quit("wglDeleteContext not found in opengl32.dll")
   wglGetProcAddress =
     cast[wglGetProcAddress](GetProcAddress(opengl, "wglGetProcAddress"))
+  if wglGetProcAddress == nil:
+    quit("wglGetProcAddress not found in opengl32.dll")
   wglGetCurrentDC =
     cast[wglGetCurrentDC](GetProcAddress(opengl, "wglGetCurrentDC"))
+  if wglGetCurrentDC == nil:
+    quit("wglGetCurrentDC not found in opengl32.dll")
   wglGetCurrentContext =
     cast[wglGetCurrentContext](GetProcAddress(opengl, "wglGetCurrentContext"))
+  if wglGetCurrentContext == nil:
+    quit("wglGetCurrentContext not found in opengl32.dll")
   wglMakeCurrent =
     cast[wglMakeCurrent](GetProcAddress(opengl, "wglMakeCurrent"))
+  if wglMakeCurrent == nil:
+    quit("wglMakeCurrent not found in opengl32.dll")
 
   # Before we can load extensions, we need a dummy OpenGL context, created using
   # a dummy window. We use a dummy window because you can only set the pixel
@@ -690,14 +702,20 @@ proc loadOpenGL() =
     cast[wglCreateContextAttribsARB](
       wglGetProcAddress("wglCreateContextAttribsARB")
     )
+  if wglCreateContextAttribsARB == nil:
+    quit("wglGetProcAddress failed to get wglCreateContextAttribsARB")
   wglChoosePixelFormatARB =
     cast[wglChoosePixelFormatARB](
       wglGetProcAddress("wglChoosePixelFormatARB")
     )
+  if wglChoosePixelFormatARB == nil:
+    quit("wglGetProcAddress failed to get wglChoosePixelFormatARB")
   wglSwapIntervalEXT =
     cast[wglSwapIntervalEXT](
       wglGetProcAddress("wglSwapIntervalEXT")
     )
+  if wglSwapIntervalEXT == nil:
+    quit("wglGetProcAddress failed to get wglSwapIntervalEXT")
 
   discard wglMakeCurrent(hdc, 0)
   discard wglDeleteContext(hglrc)
@@ -869,8 +887,7 @@ proc wndProc(
           MouseButton5
       else:
         MouseMiddle
-    case uMsg
-    of WM_LBUTTONDOWN, WM_RBUTTONDOWN, WM_MBUTTONDOWN:
+    if uMsg in {WM_LBUTTONDOWN.UINT, WM_RBUTTONDOWN, WM_MBUTTONDOWN}:
       window.handleButtonPress(button)
       if button == MouseLeft:
         discard SetCapture(window.hWnd)
@@ -1015,6 +1032,9 @@ proc newWindow*(
   try:
     result.hdc = getDC(result.hWnd)
 
+    if result.hdc == 0:
+      raise newException(WindyError, "result.hdc is 0")
+
     let pixelFormatAttribs = [
       WGL_DRAW_TO_WINDOW_ARB.int32,
       1,
@@ -1150,6 +1170,15 @@ proc buttonReleased*(window: Window): ButtonView =
 
 proc buttonToggle*(window: Window): ButtonView =
   window.state.buttonToggle.ButtonView
+
+proc alertDialog*(title, message: string) =
+  ## Pops a blocking alert dialog. Only Ascii supported.
+  discard MessageBoxW(
+    0,
+    message.wstr().cstring,
+    title.wstr().cstring,
+    0
+  )
 
 proc getAvailableClipboardFormats(): seq[UINT] =
   var format = 0.UINT
@@ -2325,3 +2354,18 @@ proc pollEvents*() =
 
   when defined(windyUseStdHttp):
     pollHttp()
+
+proc forceMousePos*(window: Window, mousePos: IVec2) =
+  ## Forces mouse position to a place.
+  ## This is used for simulating UI tests.
+  window.state.mousePos = mousePos
+
+proc forceButtonPress*(window: Window, button: Button) =
+  ## Forces button press.
+  ## This is used for simulating UI tests.
+  window.handleButtonPress(button)
+
+proc forceButtonReleased*(window: Window, button: Button) =
+  ## Forces button release.
+  ## This is used for simulating UI tests.
+  window.handleButtonRelease(button)
