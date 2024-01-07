@@ -62,6 +62,8 @@ type
     onImeChange*: Callback
     imePos*: IVec2
 
+    useVirtualKeyCodes*: bool = false
+
     state: WindowState
     trackMouseEventRegistered: bool
     exitFullscreenInfo: ExitFullscreenInfo
@@ -905,8 +907,13 @@ proc wndProc(
       window.handleButtonRelease(KeyPrintScreen)
     else:
       let
+        vk = wParam and 0xff
         scancode = (HIWORD(lParam) and (KF_EXTENDED or 0xff))
-        button = scancodeToButton[scancode]
+        button = if window.useVirtualKeyCodes and virtualKeyCodeToButton[vk] != ButtonUnknown:
+          virtualKeyCodeToButton[vk]
+        else:
+          scancodeToButton[scancode]
+
       if button != ButtonUnknown:
         if (HIWORD(lParam) and KF_UP) == 0:
           window.handleButtonPress(button)
