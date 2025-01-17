@@ -1130,6 +1130,10 @@ proc newWindow*(
     destroy result
     raise e
 
+proc `vsync=`*(window: Window, vsync: bool) =
+  if wglSwapIntervalEXT(if vsync: 1 else: 0) == 0:
+    raise newException(WindyError, "Error setting swap interval")
+
 proc title*(window: Window): string =
   window.state.title
 

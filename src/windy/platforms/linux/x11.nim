@@ -690,6 +690,17 @@ proc newWindow*(
 
   windows.add result
 
+proc `vsync=`*(window: Window, vsync: bool) =
+  let interval = if vsync: 1 else: 0
+  if glXSwapIntervalEXT != nil:
+    display.glXSwapIntervalEXT(result.handle, interval)
+  elif glXSwapIntervalMESA != nil:
+    glXSwapIntervalMESA(interval)
+  elif glXSwapIntervalSGI != nil:
+    glXSwapIntervalSGI(interval)
+  else:
+    raise WindyError.newException("VSync is not supported")
+
 proc pollEvents(window: Window) =
 
   # Clear all per-frame data
