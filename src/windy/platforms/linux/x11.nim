@@ -693,7 +693,7 @@ proc newWindow*(
 proc `vsync=`*(window: Window, vsync: bool) =
   let interval = if vsync: 1 else: 0
   if glXSwapIntervalEXT != nil:
-    display.glXSwapIntervalEXT(result.handle, interval)
+    display.glXSwapIntervalEXT(window.handle, interval)
   elif glXSwapIntervalMESA != nil:
     glXSwapIntervalMESA(interval)
   elif glXSwapIntervalSGI != nil:
