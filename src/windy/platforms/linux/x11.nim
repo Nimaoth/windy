@@ -693,11 +693,11 @@ proc newWindow*(
 proc `vsync=`*(window: Window, vsync: bool) =
   let interval = if vsync: 1 else: 0
   if glXSwapIntervalEXT != nil:
-    display.glXSwapIntervalEXT(window.handle, interval)
+    display.glXSwapIntervalEXT(window.handle, interval.cint)
   elif glXSwapIntervalMESA != nil:
-    glXSwapIntervalMESA(interval)
+    glXSwapIntervalMESA(interval.cint)
   elif glXSwapIntervalSGI != nil:
-    glXSwapIntervalSGI(interval)
+    glXSwapIntervalSGI(interval.cint)
   else:
     raise WindyError.newException("VSync is not supported")
 
