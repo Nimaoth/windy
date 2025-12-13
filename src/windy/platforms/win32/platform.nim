@@ -2380,3 +2380,6 @@ proc forceButtonReleased*(window: Window, button: Button) =
   ## Forces button release.
   ## This is used for simulating UI tests.
   window.handleButtonRelease(button)
+
+proc platformHandle*(window: Window): HWND =
+  return window.hWnd
