@@ -732,6 +732,11 @@ proc pollEvents(window: Window) =
       if window.onButtonPress != nil:
         window.onButtonPress(button)
     else:
+      if button notin window.buttonDown:
+        # If the button is released but wasn't previously pressed the we missed a pressed event
+        # so synthesize one here
+        if window.onButtonPress != nil:
+          window.onButtonPress(button)
       window.buttonDown.excl button
       window.buttonReleased.incl button
       if window.onButtonRelease != nil:
